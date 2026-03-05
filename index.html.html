@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chat Merger</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --purple:  #9147ff;
+    --purple-dark: #6318c0;
+    --ch1:  #00d4ff;
+    --ch2:  #ff6b35;
+    --yt:   #ff0000;
+    --bg:      #0e0e10;
+    --surface: #18181b;
+    --surface2:#1f1f23;
+    --border:  #2a2a2e;
+    --text:    #efeff1;
+    --muted:   #848494;
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'JetBrains Mono', monospace;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  /* ══════════════════════════════
+     HEADER
+  ══════════════════════════════ */
+  header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 0 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    height: 58px;
+    flex-shrink: 0;
+    z-index: 10;
+  }
+
+  .logo {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.4rem;
+    letter-spacing: 2px;
+    color: var(--purple);
+    white-space: nowrap;
+  }
+
+  .twitch-inputs {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex: 1;
+    border-right: 1px solid var(--border);
+    padding-right: 16px;
+  }
+
+  .yt-inputs {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex: 1;
+  }
+
+  .channel-wrap {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex: 1;
+    min-width: 0;
+  }
+
+  .platform-label {
+    font-size: 0.6rem;
+    font-weight: 600;
+    letter-spacing: 1px;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .platform-label.tw { color: var(--purple); }
+  .platform-label.yt-lbl { color: var(--yt); }
+
+  .dot { width:9px; height:9px; border-radius:50%; flex-shrink:0; }
+  .dot-1 { background:var(--ch1); box-shadow:0 0 7px var(--ch1); }
+  .dot-2 { background:var(--ch2); box-shadow:0 0 7px var(--ch2); }
+  .dot-yt { background:var(--yt);  box-shadow:0 0 7px var(--yt);  }
+
+  input[type="text"] {
+    flex: 1;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    padding: 7px 10px;
+    outline: none;
+    transition: border-color .2s;
+    min-width: 0;
+  }
+  input[type="text"]:focus { border-color: var(--purple); }
+  input.yt-input:focus { border-color: var(--yt); }
+
+  .btn {
+    background: var(--purple);
+    border: none;
+    border-radius: 6px;
+    color: #fff;
+    cursor: pointer;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 0.9rem;
+    letter-spacing: 1px;
+    padding: 7px 16px;
+    transition: background .2s, transform .1s;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .btn:hover { background: var(--purple-dark); }
+  .btn:active { transform: scale(.97); }
+  .btn.stop { background: #3a3a3f; }
+  .btn.stop:hover { background: #c0392b; }
+  .btn.yt-btn { background: #c0392b; }
+  .btn.yt-btn:hover { background: #9b2020; }
+  .btn.yt-btn.stop { background: #3a3a3f; }
+  .btn.yt-btn.stop:hover { background: #c0392b; }
+
+  /* ══════════════════════════════
+     STATUS BAR
+  ══════════════════════════════ */
+  .status-bar {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+    background: var(--surface2);
+    border-bottom: 1px solid var(--border);
+    padding: 5px 20px;
+    font-size: 0.65rem;
+    color: var(--muted);
+    flex-shrink: 0;
+  }
+
+  .status-item { display:flex; align-items:center; gap:5px; }
+  .status-dot {
+    width:7px; height:7px;
+    border-radius:50%;
+    background: var(--border);
+    transition: background .3s;
+  }
+  .status-dot.connected  { background:#00e676; box-shadow:0 0 5px #00e676; }
+  .status-dot.connecting { background:#ffc107; animation:blink 1s infinite; }
+  .status-dot.error      { background:#e91916; }
+
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
+
+  .msg-count { margin-left:auto; font-size:0.62rem; color:var(--muted); }
+
+  /* ══════════════════════════════
+     MAIN LAYOUT
+  ══════════════════════════════ */
+  .main {
+    flex: 1;
+    display: flex;
+    overflow: hidden;
+  }
+
+  /* ══════════════════════════════
+     TWITCH PANEL (left)
+  ══════════════════════════════ */
+  .twitch-panel {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    border-right: 1px solid var(--border);
+    overflow: hidden;
+    min-width: 0;
+    position: relative;
+  }
+
+  .panel-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 14px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 1px;
+    flex-shrink: 0;
+  }
+  .panel-header.tw-header { color: var(--purple); }
+  .panel-header.yt-header { color: var(--yt); }
+
+  .chat-container {
+    flex: 1;
+    overflow-y: auto;
+    padding: 8px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .chat-container::-webkit-scrollbar { width:5px; }
+  .chat-container::-webkit-scrollbar-thumb { background:var(--border); border-radius:3px; }
+
+  /* ══════════════════════════════
+     YOUTUBE PANEL (right)
+  ══════════════════════════════ */
+  .yt-panel {
+    width: 360px;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    background: var(--surface);
+    overflow: hidden;
+  }
+
+  .yt-frame-wrap {
+    flex: 1;
+    position: relative;
+    background: var(--bg);
+    overflow: hidden;
+  }
+
+  .yt-frame-wrap iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+    display: block;
+  }
+
+  .yt-placeholder {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    color: var(--muted);
+    text-align: center;
+    padding: 30px;
+  }
+  .yt-placeholder svg { opacity: .3; }
+  .yt-placeholder p { font-size: 0.78rem; line-height: 1.7; }
+  .yt-placeholder .hint {
+    font-size: 0.65rem;
+    opacity: .7;
+    line-height: 1.6;
+  }
+
+  /* ══════════════════════════════
+     MESSAGES
+  ══════════════════════════════ */
+  .msg {
+    display: flex;
+    align-items: baseline;
+    gap: 7px;
+    padding: 3px 7px;
+    border-radius: 4px;
+    border-left: 3px solid transparent;
+    animation: fadeIn .2s ease;
+    line-height: 1.5;
+    transition: background .15s;
+  }
+  .msg:hover { background: var(--surface2); }
+
+  @keyframes fadeIn {
+    from { opacity:0; transform:translateY(3px); }
+    to   { opacity:1; transform:translateY(0); }
+  }
+
+  .msg.ch1    { border-left-color: var(--ch1); }
+  .msg.ch2    { border-left-color: var(--ch2); }
+  .msg.system { border-left-color: var(--muted); opacity:.6; }
+
+  .msg-time {
+    font-size:0.62rem; color:var(--muted);
+    white-space:nowrap; flex-shrink:0;
+  }
+  .msg-channel {
+    font-size:0.62rem; font-weight:600;
+    white-space:nowrap; flex-shrink:0;
+    padding:1px 5px; border-radius:3px;
+  }
+  .ch1 .msg-channel { background:rgba(0,212,255,.12); color:var(--ch1); }
+  .ch2 .msg-channel { background:rgba(255,107,53,.12); color:var(--ch2); }
+
+  .msg-user  { font-weight:600; font-size:0.78rem; white-space:nowrap; flex-shrink:0; }
+  .msg-sep   { color:var(--muted); flex-shrink:0; }
+  .msg-text  { font-size:0.78rem; word-break:break-word; color:var(--text); }
+
+  /* empty state */
+  .empty-state {
+    flex:1; display:flex; flex-direction:column;
+    align-items:center; justify-content:center;
+    color:var(--muted); text-align:center; gap:10px; padding:30px;
+  }
+  .empty-state svg { opacity:.25; }
+  .empty-state p { font-size:0.78rem; line-height:1.6; }
+
+  /* scroll btn */
+  .scroll-lock-btn {
+    position: absolute;
+    bottom: 14px; right: 14px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 50%;
+    color: var(--text);
+    cursor: pointer;
+    width:36px; height:36px;
+    display: none;
+    align-items: center; justify-content: center;
+    font-size: 1rem;
+    z-index: 10;
+    transition: background .2s;
+  }
+  .scroll-lock-btn:hover { background: var(--purple); }
+  .scroll-lock-btn.show  { display: flex; }
+
+  /* ══════════════════════════════
+     RESPONSIVE
+  ══════════════════════════════ */
+  @media (max-width: 860px) {
+    .yt-panel { width: 280px; }
+  }
+  @media (max-width: 640px) {
+    header { flex-direction: column; height: auto; padding: 10px 14px; gap: 8px; }
+    .twitch-inputs, .yt-inputs { flex-wrap: wrap; border: none; padding: 0; width: 100%; }
+    .main { flex-direction: column; }
+    .yt-panel { width: 100%; height: 45vh; border-top: 1px solid var(--border); }
+    .twitch-panel { height: 55vh; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════ HEADER ═══════════════ -->
+<header>
+  <div class="logo">⬡ MERGER</div>
+
+  <!-- Twitch inputs -->
+  <div class="twitch-inputs">
+    <span class="platform-label tw">TWITCH</span>
+    <div class="channel-wrap">
+      <span class="dot dot-1"></span>
+      <input type="text" id="ch1" placeholder="Kanal 1" spellcheck="false">
+    </div>
+    <div class="channel-wrap">
+      <span class="dot dot-2"></span>
+      <input type="text" id="ch2" placeholder="Kanal 2" spellcheck="false">
+    </div>
+    <button class="btn" id="connectBtn" onclick="toggleConnect()">VERBINDEN</button>
+  </div>
+
+  <!-- YouTube input -->
+  <div class="yt-inputs">
+    <span class="platform-label yt-lbl">YOUTUBE</span>
+    <div class="channel-wrap">
+      <span class="dot dot-yt"></span>
+      <input type="text" class="yt-input" id="ytId" placeholder="Video-ID oder URL" spellcheck="false">
+    </div>
+    <button class="btn yt-btn" id="ytBtn" onclick="toggleYT()">LADEN</button>
+  </div>
+</header>
+
+<!-- ═══════════════ STATUS BAR ═══════════════ -->
+<div class="status-bar">
+  <div class="status-item">
+    <span class="dot dot-1"></span>
+    <span class="status-dot" id="st1"></span>
+    <span id="stLabel1">Nicht verbunden</span>
+  </div>
+  <div class="status-item">
+    <span class="dot dot-2"></span>
+    <span class="status-dot" id="st2"></span>
+    <span id="stLabel2">Nicht verbunden</span>
+  </div>
+  <div class="status-item">
+    <span class="dot dot-yt"></span>
+    <span class="status-dot" id="stYT"></span>
+    <span id="stLabelYT">Kein YouTube</span>
+  </div>
+  <span class="msg-count" id="msgCount">0 Nachrichten</span>
+</div>
+
+<!-- ═══════════════ MAIN ═══════════════ -->
+<div class="main">
+
+  <!-- Left: Twitch merged feed -->
+  <div class="twitch-panel">
+    <div class="panel-header tw-header">
+      🟣 TWITCH — ZUSAMMENGEFÜHRTER CHAT
+    </div>
+    <div class="chat-container" id="chatBox">
+      <div class="empty-state" id="emptyState">
+        <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+        </svg>
+        <p>Gib zwei Twitch-Kanalnamen ein<br>und klicke auf <strong>VERBINDEN</strong>.</p>
+      </div>
+    </div>
+    <button class="scroll-lock-btn" id="scrollBtn" title="Nach unten" onclick="scrollToBottom()">↓</button>
+  </div>
+
+  <!-- Right: YouTube live chat iframe -->
+  <div class="yt-panel">
+    <div class="panel-header yt-header">
+      🔴 YOUTUBE LIVE CHAT
+    </div>
+    <div class="yt-frame-wrap" id="ytWrap">
+      <div class="yt-placeholder" id="ytPlaceholder">
+        <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path d="M22.54 6.42a2.78 2.78 0 0 0-1.94-1.96C18.88 4 12 4 12 4s-6.88 0-8.6.46A2.78 2.78 0 0 0 1.46 6.42 29 29 0 0 0 1 12a29 29 0 0 0 .46 5.58 2.78 2.78 0 0 0 1.94 1.97C5.12 20 12 20 12 20s6.88 0 8.6-.45a2.78 2.78 0 0 0 1.94-1.97A29 29 0 0 0 23 12a29 29 0 0 0-.46-5.58z"/>
+          <polygon points="9.75 15.02 15.5 12 9.75 8.98 9.75 15.02"/>
+        </svg>
+        <p>Gib die <strong>YouTube Video-ID</strong><br>eines laufenden Livestreams ein<br>und klicke auf <strong>LADEN</strong>.</p>
+        <p class="hint">
+          Die Video-ID steht in der URL:<br>
+          youtube.com/watch?v=<strong>HIERID</strong><br><br>
+          ⚠ Nur bei aktiven Livestreams möglich,<br>
+          bei denen der Chat-Embed erlaubt ist.
+        </p>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  /* ─────────────────────────────
+     TWITCH IRC
+  ───────────────────────────── */
+  let ws1 = null, ws2 = null;
+  let connected = false;
+  let msgCount = 0;
+  let autoScroll = true;
+
+  const chatBox    = document.getElementById('chatBox');
+  const emptyState = document.getElementById('emptyState');
+  const scrollBtn  = document.getElementById('scrollBtn');
+
+  chatBox.addEventListener('scroll', () => {
+    const atBottom = chatBox.scrollHeight - chatBox.scrollTop - chatBox.clientHeight < 60;
+    autoScroll = atBottom;
+    scrollBtn.classList.toggle('show', !atBottom);
+  });
+
+  function scrollToBottom() {
+    chatBox.scrollTop = chatBox.scrollHeight;
+    autoScroll = true;
+    scrollBtn.classList.remove('show');
+  }
+
+  function setStatus(n, state, label) {
+    document.getElementById('st' + n).className = 'status-dot ' + state;
+    document.getElementById('stLabel' + n).textContent = label;
+  }
+
+  function toggleConnect() {
+    if (connected) { disconnect(); return; }
+    const c1 = document.getElementById('ch1').value.trim().toLowerCase().replace(/^#/,'');
+    const c2 = document.getElementById('ch2').value.trim().toLowerCase().replace(/^#/,'');
+    if (!c1 || !c2) { alert('Bitte beide Twitch-Kanalnamen eingeben.'); return; }
+    connect(c1, c2);
+  }
+
+  function connect(c1, c2) {
+    connected = true;
+    const btn = document.getElementById('connectBtn');
+    btn.textContent = 'TRENNEN';
+    btn.classList.add('stop');
+    emptyState.style.display = 'none';
+    addSystemMsg(`Verbinde mit #${c1} und #${c2}…`);
+    ws1 = createWS(c1, 1);
+    ws2 = createWS(c2, 2);
+  }
+
+  function disconnect() {
+    connected = false;
+    if (ws1) { ws1.close(); ws1 = null; }
+    if (ws2) { ws2.close(); ws2 = null; }
+    const btn = document.getElementById('connectBtn');
+    btn.textContent = 'VERBINDEN';
+    btn.classList.remove('stop');
+    setStatus(1, '', 'Nicht verbunden');
+    setStatus(2, '', 'Nicht verbunden');
+    addSystemMsg('Twitch-Verbindung getrennt.');
+  }
+
+  function createWS(channel, num) {
+    setStatus(num, 'connecting', `Verbinde mit #${channel}…`);
+    const ws = new WebSocket('wss://irc-ws.chat.twitch.tv:443');
+
+    ws.onopen = () => {
+      ws.send('PASS oauth:justinfan' + Math.floor(Math.random()*90000+10000));
+      ws.send('NICK justinfan' + Math.floor(Math.random()*90000+10000));
+      ws.send('CAP REQ :twitch.tv/tags');
+      ws.send('JOIN #' + channel);
+      setStatus(num, 'connecting', `Betrete #${channel}…`);
+    };
+
+    ws.onmessage = (e) => {
+      e.data.split('\r\n').filter(Boolean).forEach(l => handleLine(l, channel, num));
+    };
+
+    ws.onerror = () => {
+      setStatus(num, 'error', `Fehler bei #${channel}`);
+      addSystemMsg(`⚠ Fehler bei #${channel}`);
+    };
+
+    ws.onclose = () => {
+      if (connected) setStatus(num, 'error', `Getrennt: #${channel}`);
+    };
+
+    return ws;
+  }
+
+  function handleLine(line, channel, num) {
+    if (line.startsWith('PING')) {
+      (num===1?ws1:ws2)?.send('PONG :tmi.twitch.tv');
+      return;
+    }
+    if (line.includes('JOIN #' + channel)) {
+      setStatus(num, 'connected', `#${channel}`);
+      addSystemMsg(`✓ Verbunden mit #${channel}`);
+      return;
+    }
+    const tagged = line.match(/^@([^ ]+) :([^!]+)![^ ]+ PRIVMSG #\S+ :(.+)$/);
+    if (tagged) {
+      const tags  = parseTags(tagged[1]);
+      const user  = tags['display-name'] || tagged[2];
+      const color = tags['color'] || (num===1?'#00d4ff':'#ff6b35');
+      addMsg(num, channel, user, color, tagged[3]);
+      return;
+    }
+    const basic = line.match(/:([^!]+)![^ ]+ PRIVMSG #\S+ :(.+)$/);
+    if (basic) addMsg(num, channel, basic[1], num===1?'#00d4ff':'#ff6b35', basic[2]);
+  }
+
+  function parseTags(raw) {
+    const t = {};
+    raw.split(';').forEach(p => { const [k,v]=p.split('='); t[k]=v; });
+    return t;
+  }
+
+  function addMsg(num, channel, user, color, text) {
+    msgCount++;
+    document.getElementById('msgCount').textContent = msgCount.toLocaleString('de') + ' Nachrichten';
+    const time = new Date().toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+    const div = document.createElement('div');
+    div.className = `msg ch${num}`;
+    div.innerHTML = `
+      <span class="msg-time">${time}</span>
+      <span class="msg-channel">#${channel}</span>
+      <span class="msg-user" style="color:${color}">${escHtml(user)}</span>
+      <span class="msg-sep">›</span>
+      <span class="msg-text">${escHtml(text)}</span>`;
+    chatBox.appendChild(div);
+    while (chatBox.children.length > 502) chatBox.removeChild(chatBox.children[1]);
+    if (autoScroll) chatBox.scrollTop = chatBox.scrollHeight;
+  }
+
+  function addSystemMsg(text) {
+    const div = document.createElement('div');
+    div.className = 'msg system';
+    div.innerHTML = `<span class="msg-text" style="color:var(--muted);font-size:0.72rem">${escHtml(text)}</span>`;
+    chatBox.appendChild(div);
+    if (autoScroll) chatBox.scrollTop = chatBox.scrollHeight;
+  }
+
+  function escHtml(s) {
+    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  ['ch1','ch2'].forEach(id =>
+    document.getElementById(id).addEventListener('keydown', e => { if(e.key==='Enter') toggleConnect(); })
+  );
+
+  /* ─────────────────────────────
+     YOUTUBE IFRAME
+  ───────────────────────────── */
+  let ytLoaded = false;
+
+  document.getElementById('ytId').addEventListener('keydown', e => {
+    if (e.key === 'Enter') toggleYT();
+  });
+
+  function extractVideoId(input) {
+    input = input.trim();
+    const patterns = [
+      /[?&]v=([A-Za-z0-9_-]{11})/,
+      /youtu\.be\/([A-Za-z0-9_-]{11})/,
+      /\/live\/([A-Za-z0-9_-]{11})/,
+      /\/embed\/([A-Za-z0-9_-]{11})/,
+    ];
+    for (const p of patterns) {
+      const m = input.match(p);
+      if (m) return m[1];
+    }
+    if (/^[A-Za-z0-9_-]{11}$/.test(input)) return input;
+    return null;
+  }
+
+  function toggleYT() {
+    ytLoaded ? unloadYT() : loadYT();
+  }
+
+  function loadYT() {
+    const raw = document.getElementById('ytId').value.trim();
+    const videoId = extractVideoId(raw);
+    if (!videoId) {
+      alert('Ungültige YouTube-Video-ID oder URL.\nBeispiel: dQw4w9WgXcQ');
+      return;
+    }
+
+    // embed_domain muss mit der Domain deiner Website übereinstimmen
+    const origin = window.location.hostname || 'localhost';
+    const embedUrl = `https://www.youtube.com/live_chat?v=${videoId}&embed_domain=${origin}`;
+
+    const wrap = document.getElementById('ytWrap');
+    document.getElementById('ytPlaceholder').style.display = 'none';
+    const old = document.getElementById('ytIframe');
+    if (old) old.remove();
+
+    const iframe = document.createElement('iframe');
+    iframe.id = 'ytIframe';
+    iframe.src = embedUrl;
+    iframe.allow = 'autoplay; clipboard-write; encrypted-media; picture-in-picture';
+    iframe.style.cssText = 'width:100%;height:100%;border:none;display:block;';
+    wrap.appendChild(iframe);
+
+    ytLoaded = true;
+    const btn = document.getElementById('ytBtn');
+    btn.textContent = 'ENTFERNEN';
+    btn.classList.add('stop');
+    document.getElementById('stYT').className = 'status-dot connected';
+    document.getElementById('stLabelYT').textContent = `YT: ${videoId}`;
+  }
+
+  function unloadYT() {
+    const old = document.getElementById('ytIframe');
+    if (old) old.remove();
+    document.getElementById('ytPlaceholder').style.display = 'flex';
+    ytLoaded = false;
+    const btn = document.getElementById('ytBtn');
+    btn.textContent = 'LADEN';
+    btn.classList.remove('stop');
+    document.getElementById('stYT').className = 'status-dot';
+    document.getElementById('stLabelYT').textContent = 'Kein YouTube';
+  }
+</script>
+</body>
+</html>
