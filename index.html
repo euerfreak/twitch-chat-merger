@@ -704,5 +704,19 @@
     document.getElementById('stLabelYT').textContent = 'Kein YouTube';
   }
 </script>
+  <button onclick="pingSeite()">Punkte sammeln</button>
+<iframe id="pinger" style="display:none"></iframe>
+
+/* ─────────────────────────────
+     Punkte Button
+  ───────────────────────────── */
+  <iframe id="pinger" style="display:none"></iframe>
+  <button class="layout-btn" onclick="pingSeite()" title="Punkte">⭐</button>
+<script>
+function pingSeite() {
+  document.getElementById('pinger').src = 'https://casinoelements.com/api/stream-points/295d3739-b299-4d07-9520-4360e0b3ada5/give?keyword=zoan&points=10&time=60';
+}
+</script>
+  
 </body>
 </html>
