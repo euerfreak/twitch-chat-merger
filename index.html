@@ -470,6 +470,9 @@
     <button class="scroll-lock-btn" id="scrollBtn" title="Nach unten" onclick="scrollToBottom()">↓</button>
   </div>
 
+  <!-- Dynamischer Divider -->
+  <div id="divider"></div>
+  
   <!-- Right: YouTube live chat iframe -->
   <div class="yt-panel">
     <div class="panel-header yt-header">
@@ -493,7 +496,25 @@
   </div>
 
 </div>
+  
+<style>
+  #divider {
+  width: 5px;
+  background: var(--border);
+  cursor: col-resize;
+  flex-shrink: 0;
+  transition: background .2s;
+}
+#divider:hover { background: var(--purple); }
 
+/* Im vertikalen Modus wird er horizontal */
+.main.vertical #divider {
+  width: 100%;
+  height: 5px;
+  cursor: row-resize;
+}
+</style>
+  
 <script>
   /* ─────────────────────────────
      LAYOUT TOGGLE
@@ -730,6 +751,37 @@
     document.getElementById('stYT').className = 'status-dot';
     document.getElementById('stLabelYT').textContent = 'Kein YouTube';
   }
+
+  /* ─────────────────────────────
+     Dynamischer Divider
+  ───────────────────────────── */
+
+  const divider    = document.getElementById('divider');
+  const mainEl     = document.querySelector('.main');
+  const twitchPanel = document.querySelector('.twitch-panel');
+  
+  divider.addEventListener('mousedown', (e) => {
+    e.preventDefault();
+    const onMove = (e) => {
+      if (isVertical) {
+        const rect = mainEl.getBoundingClientRect();
+        const pct  = (e.clientY - rect.top) / rect.height * 100;
+        twitchPanel.style.height = `${Math.min(Math.max(pct, 20), 80)}%`;
+        twitchPanel.style.flex   = 'none';
+      } else {
+        const rect = mainEl.getBoundingClientRect();
+        const pct  = (e.clientX - rect.left) / rect.width * 100;
+        twitchPanel.style.width = `${Math.min(Math.max(pct, 20), 80)}%`;
+        twitchPanel.style.flex  = 'none';
+      }
+    };
+    const onUp = () => {
+      document.removeEventListener('mousemove', onMove);
+      document.removeEventListener('mouseup',   onUp);
+    };
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup',   onUp);
+  });
 </script>
   
   
