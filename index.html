@@ -433,37 +433,9 @@
 
 <!-- ═══════════════ HEADER ═══════════════ -->
 <header>
-  <div class="logo">🎰 Chat Merger by Euerfreak 🎰</div>
-
-  <!-- Twitch inputs -->
-  <div class="twitch-inputs">
-    <span class="platform-label tw">TWITCH</span>
-    <div class="channel-wrap">
-      <span class="dot dot-1"></span>
-      <input type="text" id="ch1" placeholder="Kanal 1" spellcheck="false" value="KingOfCasino_">
-    </div>
-    <div class="channel-wrap">
-      <span class="dot dot-2"></span>
-      <input type="text" id="ch2" placeholder="Kanal 2" spellcheck="false" value="Domedy47">
-    </div>
-    <button class="btn" id="connectBtn" onclick="toggleConnect()">VERBINDEN</button>
-  </div>
-
-  <!-- YouTube input -->
-  <div class="yt-inputs">
-    <span class="platform-label yt-lbl">YOUTUBE</span>
-    <div class="channel-wrap">
-      <span class="dot dot-yt"></span>
-      <input type="text" class="yt-input" id="ytId" placeholder="Video-ID oder URL" spellcheck="false">
-    </div>
-    <button class="btn yt-btn" id="ytBtn" onclick="toggleYT()">LADEN</button>
-  </div>
-
-  <div class="punkte-button">
-    <!-- Layout Toggle -->
-    <button class="layout-btn" id="layoutBtn" onclick="toggleLayout()" title="Layout wechseln">⇄</button>
   
-      <!-- Button -->
+  <div class="punkte-button">
+    <!-- Button -->
     <button class="layout-btn" onclick="pingSeite()" title="Punkte">⭐</button>
     <iframe id="pinger" style="display:none"></iframe>
     <script>
@@ -478,6 +450,36 @@
       setTimeout(() => toast.classList.remove('show'), 5000);
     }
     </script>
+  </div>
+  <!-- Twitch inputs -->
+  <div class="twitch-inputs">
+    <span class="platform-label tw">TWITCH</span>
+    <div class="channel-wrap">
+      <span class="dot dot-1"></span>
+      <input type="text" id="ch1" placeholder="Kanal 1" spellcheck="false" value="KingOfCasino_">
+    </div>
+    <div class="channel-wrap">
+      <span class="dot dot-2"></span>
+      <input type="text" id="ch2" placeholder="Kanal 2" spellcheck="false" value="Domedy47">
+    </div>
+    <button class="btn" id="connectBtn" onclick="toggleConnect()">VERBINDEN</button>
+  </div>
+
+  <div class="logo">🎰 Chat Merger by Euerfreak 🎰</div>
+  
+  <!-- YouTube input -->
+  <div class="yt-inputs">
+    <span class="platform-label yt-lbl">YOUTUBE</span>
+    <div class="channel-wrap">
+      <span class="dot dot-yt"></span>
+      <input type="text" class="yt-input" id="ytId" placeholder="Video-ID oder URL" spellcheck="false">
+    </div>
+    <button class="btn yt-btn" id="ytBtn" onclick="toggleYT()">LADEN</button>
+  </div>
+
+  <div class="punkte-button">
+    <!-- Layout Toggle -->
+    <button class="layout-btn" id="layoutBtn" onclick="toggleLayout()" title="Layout wechseln">⇄</button>
   </div>
 </header>
 
