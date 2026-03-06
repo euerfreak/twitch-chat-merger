@@ -70,6 +70,12 @@
     align-items: center;
     flex: 1;
   }
+  .punkte-button {
+    display: flex;
+    gap: 8px;
+    align-items: right;
+    flex: 1;
+  }
 
   .layout-btn {
     background: var(--surface2);
@@ -370,14 +376,7 @@
   }
 </style>
 
-  <!-- Button -->
-<button class="layout-btn" onclick="pingSeite()" title="Punkte">⭐</button>
-<iframe id="pinger" style="display:none"></iframe>
-<script>
-function pingSeite() {
-  document.getElementById('pinger').src = 'https://casinoelements.com/api/stream-points/295d3739-b299-4d07-9520-4360e0b3ada5/give?keyword=zoan&points=10&time=60';
-}
-</script>
+
 </head>
 <body>
 
@@ -409,8 +408,19 @@ function pingSeite() {
     <button class="btn yt-btn" id="ytBtn" onclick="toggleYT()">LADEN</button>
   </div>
 
-  <!-- Layout Toggle -->
-  <button class="layout-btn" id="layoutBtn" onclick="toggleLayout()" title="Layout wechseln">⇄</button>
+  <div class="punkte-button">
+    <!-- Layout Toggle -->
+    <button class="layout-btn" id="layoutBtn" onclick="toggleLayout()" title="Layout wechseln">⇄</button>
+  
+      <!-- Button -->
+    <button class="layout-btn" onclick="pingSeite()" title="Punkte">⭐</button>
+    <iframe id="pinger" style="display:none"></iframe>
+    <script>
+    function pingSeite() {
+      document.getElementById('pinger').src = 'https://casinoelements.com/api/stream-points/295d3739-b299-4d07-9520-4360e0b3ada5/give?keyword=zoan&points=10&time=60';
+    }
+    </script>
+  </div>
 </header>
 
 <!-- ═══════════════ STATUS BAR ═══════════════ -->
