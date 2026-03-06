@@ -433,9 +433,9 @@
 
 <!-- ═══════════════ HEADER ═══════════════ -->
 <header>
-  
+
+  <!-- Punkte Button -->
   <div class="punkte-button">
-    <!-- Button -->
     <button class="layout-btn" onclick="pingSeite()" title="Punkte">⭐</button>
     <iframe id="pinger" style="display:none"></iframe>
     <script>
@@ -444,13 +444,14 @@
       pinger.src = '';
       setTimeout(() => pinger.src = 'https://casinoelements.com/api/stream-points/295d3739-b299-4d07-9520-4360e0b3ada5/give?keyword=zoan&points=10&time=60', 50);
     
-      // Toast anzeigen
+      <!-- Alert -->
       const toast = document.getElementById('toast');
       toast.classList.add('show');
       setTimeout(() => toast.classList.remove('show'), 5000);
     }
     </script>
   </div>
+  
   <!-- Twitch inputs -->
   <div class="twitch-inputs">
     <span class="platform-label tw">TWITCH</span>
@@ -477,8 +478,8 @@
     <button class="btn yt-btn" id="ytBtn" onclick="toggleYT()">LADEN</button>
   </div>
 
+  <!-- Layout Button -->
   <div class="punkte-button">
-    <!-- Layout Toggle -->
     <button class="layout-btn" id="layoutBtn" onclick="toggleLayout()" title="Layout wechseln">⇄</button>
   </div>
 </header>
