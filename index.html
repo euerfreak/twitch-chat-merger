@@ -528,6 +528,10 @@
     main.classList.toggle('vertical', isVertical);
     btn.textContent = isVertical ? '⇅' : '⇄';
     btn.title = isVertical ? 'Nebeneinander anzeigen' : 'Übereinander anzeigen';
+    // Manuelle Größen vom Resizer zurücksetzen
+    twitchPanel.style.width  = '';
+    twitchPanel.style.height = '';
+    twitchPanel.style.flex   = '';
   }
 
   /* ─────────────────────────────
